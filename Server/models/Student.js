@@ -1,19 +1,20 @@
-// models/Student.js
+// models/Student.js  — Fixed version
+// Change: added ca3 field (max 20) to subjectMarksSchema to match frontend calcTotal()
+
 const mongoose = require('mongoose');
 
-// --- Sub-schema for academic marks per subject ---
 const subjectMarksSchema = new mongoose.Schema(
   {
     subject: { type: String, required: true, trim: true },
-    ca1:     { type: Number, min: 0, max: 20, default: 0 },  // Max 20 marks
-    ca2:     { type: Number, min: 0, max: 20, default: 0 },  // Max 20 marks
-    midterm: { type: Number, min: 0, max: 30, default: 0 },  // Max 30 marks
-    endterm: { type: Number, min: 0, max: 50, default: 0 },  // Max 50 marks
+    ca1:     { type: Number, min: 0, max: 20, default: 0 },
+    ca2:     { type: Number, min: 0, max: 20, default: 0 },
+    ca3:     { type: Number, min: 0, max: 20, default: 0 }, // ✅ FIX: was missing, frontend calcTotal uses ca3
+    midterm: { type: Number, min: 0, max: 50, default: 0 },
+    endterm: { type: Number, min: 0, max: 100, default: 0 }, // ✅ FIX: was max:50 but frontend header says (Max 100)
   },
-  { _id: false } // Don't create a separate _id for each sub-document
+  { _id: false }
 );
 
-// --- Sub-schema for individual attendance records ---
 const attendanceRecordSchema = new mongoose.Schema(
   {
     sessionId:   { type: String, required: true },
@@ -26,10 +27,8 @@ const attendanceRecordSchema = new mongoose.Schema(
   { _id: false }
 );
 
-// --- Main Student Schema ---
 const studentSchema = new mongoose.Schema(
   {
-    // Personal Info
     name: {
       type: String,
       required: [true, 'Student name is required'],
@@ -41,7 +40,6 @@ const studentSchema = new mongoose.Schema(
       unique: true,
       uppercase: true,
       trim: true,
-      // Example format: STU-2024-001
     },
     email: {
       type: String,
@@ -54,8 +52,6 @@ const studentSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
-
-    // Academic Info
     department: {
       type: String,
       required: [true, 'Department is required'],
@@ -67,11 +63,9 @@ const studentSchema = new mongoose.Schema(
       max: 8,
     },
     batch: {
-      type: String, // e.g., "2022-2026"
+      type: String,
       trim: true,
     },
-
-    // Attendance
     attendancePercentage: {
       type: Number,
       min: 0,
@@ -79,11 +73,7 @@ const studentSchema = new mongoose.Schema(
       default: 0,
     },
     attendanceRecords: [attendanceRecordSchema],
-
-    // Academic Marks (array of subjects)
     marks: [subjectMarksSchema],
-
-    // Reference back to the User account
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
@@ -91,22 +81,20 @@ const studentSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-    // Add a virtual field for total marks calculation
     toJSON:   { virtuals: true },
     toObject: { virtuals: true },
   }
 );
 
-// --- VIRTUAL: Calculate total marks for each subject ---
 studentSchema.virtual('subjectTotals').get(function () {
   return this.marks.map((m) => ({
     subject: m.subject,
-    total:   m.ca1 + m.ca2 + m.midterm + m.endterm,
-    grade:   calculateGrade(m.ca1 + m.ca2 + m.midterm + m.endterm),
+    // ✅ FIX: includes ca3 in total
+    total:   m.ca1 + m.ca2 + m.ca3 + m.midterm + m.endterm,
+    grade:   calculateGrade(m.ca1 + m.ca2 + m.ca3 + m.midterm + m.endterm),
   }));
 });
 
-// --- HELPER: Grade calculator ---
 function calculateGrade(total) {
   if (total >= 90) return 'A+';
   if (total >= 80) return 'A';
@@ -117,13 +105,9 @@ function calculateGrade(total) {
   return 'F';
 }
 
-// --- METHOD: Recalculate attendance percentage ---
 studentSchema.methods.recalculateAttendance = function () {
   const records = this.attendanceRecords;
-  if (records.length === 0) {
-    this.attendancePercentage = 0;
-    return;
-  }
+  if (records.length === 0) { this.attendancePercentage = 0; return; }
   const present = records.filter((r) => r.status === 'Present' || r.status === 'Late').length;
   this.attendancePercentage = Math.round((present / records.length) * 100);
 };

@@ -1,26 +1,32 @@
-// Sidebar.js
-// Navigation sidebar for EduSmart. Reads userRole from UserContext.
-// Uses react-router-dom NavLink for active-state detection.
-
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
-  BookOpen, Calendar, BarChart3, CreditCard, ClipboardCheck,
-  ShieldCheck, CheckCircle2, FileSpreadsheet, Upload, Users,
-  LogOut, X,
+  BookOpen,
+  Calendar,
+  BarChart3,
+  CreditCard,
+  ClipboardCheck,
+  ShieldCheck,
+  CheckCircle2,
+  FileSpreadsheet,
+  Upload,
+  Users,
+  LogOut,
+  X,
+  Megaphone,
 } from 'lucide-react';
 import { useUser } from '../Context/UserContext';
 
-// ─── Single nav button ─────────────────────────────────────────────────────────
 const SidebarBtn = ({ icon: Icon, label, to, onClick }) => (
   <NavLink
     to={to}
     onClick={onClick}
     className={({ isActive }) =>
       `w-full flex items-center gap-4 px-4 py-3 md:py-4 rounded-[1.25rem] transition-all duration-300 mb-1.5 group
-      ${isActive
-        ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-600/20 scale-105'
-        : 'text-slate-500 hover:bg-slate-800 hover:text-slate-300'
+      ${
+        isActive
+          ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-600/20 scale-105'
+          : 'text-slate-500 hover:bg-slate-800 hover:text-slate-300'
       }`
     }
   >
@@ -36,7 +42,6 @@ const SidebarBtn = ({ icon: Icon, label, to, onClick }) => (
   </NavLink>
 );
 
-// ─── Sidebar ───────────────────────────────────────────────────────────────────
 const Sidebar = ({ isOpen, onClose }) => {
   const { userRole, logout } = useUser();
   const navigate = useNavigate();
@@ -47,7 +52,11 @@ const Sidebar = ({ isOpen, onClose }) => {
     onClose?.();
   };
 
-  const linkProps = { onClick: () => { if (window.innerWidth < 1024) onClose?.(); } };
+  const linkProps = {
+    onClick: () => {
+      if (window.innerWidth < 1024) onClose?.();
+    },
+  };
 
   return (
     <aside
@@ -56,7 +65,6 @@ const Sidebar = ({ isOpen, onClose }) => {
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         w-64 flex flex-col`}
     >
-      {/* Logo */}
       <div className="p-6 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-600/20">
@@ -72,39 +80,35 @@ const Sidebar = ({ isOpen, onClose }) => {
         </button>
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 px-3 mt-6 overflow-y-auto">
-        {/* Shared links */}
-        <SidebarBtn icon={BarChart3}     label="Home"       to="/home"       {...linkProps} />
-        <SidebarBtn icon={Calendar}      label="Timetable"  to="/timetable"  {...linkProps} />
-        <SidebarBtn icon={BookOpen}      label="Syllabus"   to="/syllabus"   {...linkProps} />
+        <SidebarBtn icon={BarChart3} label="Home" to="/home" {...linkProps} />
+        <SidebarBtn icon={Calendar} label="Timetable" to="/timetable" {...linkProps} />
+        <SidebarBtn icon={BookOpen} label="Syllabus" to="/syllabus" {...linkProps} />
+        <SidebarBtn icon={Megaphone} label="Announcements" to="/announcements" {...linkProps} />
 
-        {/* Student-only links */}
         {userRole === 'student' && (
           <>
-            <SidebarBtn icon={CreditCard}    label="Pay Fee"      to="/pay-fee"    {...linkProps} />
+            <SidebarBtn icon={CreditCard} label="Pay Fee" to="/pay-fee" {...linkProps} />
             <SidebarBtn icon={ClipboardCheck} label="Assessments" to="/assessments" {...linkProps} />
-            <SidebarBtn icon={ShieldCheck}   label="Results"      to="/results"    {...linkProps} />
+            <SidebarBtn icon={ShieldCheck} label="Results" to="/results" {...linkProps} />
           </>
         )}
 
-        {/* Faculty-only links */}
         {userRole === 'faculty' && (
           <>
             <div className="h-px bg-slate-800 mx-4 my-4 opacity-50" />
             <p className="text-[10px] uppercase font-black text-slate-600 ml-4 mb-2 tracking-widest">
               Faculty Controls
             </p>
-            <SidebarBtn icon={CheckCircle2}   label="Take Attendance"     to="/attendance"          {...linkProps} />
-            <SidebarBtn icon={FileSpreadsheet} label="Upload Marks"       to="/upload-marks"        {...linkProps} />
-            <SidebarBtn icon={Upload}         label="Upload Notes"        to="/upload-notes"        {...linkProps} />
-            <SidebarBtn icon={Users}          label="Student Lists"       to="/student-lists"       {...linkProps} />
-            <SidebarBtn icon={BarChart3}      label="Completion Tracking" to="/completion-tracking" {...linkProps} />
+            <SidebarBtn icon={CheckCircle2} label="Take Attendance" to="/attendance" {...linkProps} />
+            <SidebarBtn icon={FileSpreadsheet} label="Upload Marks" to="/upload-marks" {...linkProps} />
+            <SidebarBtn icon={Upload} label="Upload Notes" to="/upload-notes" {...linkProps} />
+            <SidebarBtn icon={Users} label="Student Lists" to="/student-lists" {...linkProps} />
+            <SidebarBtn icon={BarChart3} label="Completion Tracking" to="/completion-tracking" {...linkProps} />
           </>
         )}
       </nav>
 
-      {/* Sign out */}
       <div className="p-4 border-t border-slate-800">
         <button
           onClick={handleSignOut}
@@ -120,3 +124,4 @@ const Sidebar = ({ isOpen, onClose }) => {
 };
 
 export default Sidebar;
+
